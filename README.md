@@ -1,5 +1,5 @@
 # OSTE-Web-Log-Analyzer
-![Project Logo](Lib/ostewla.png)
+![Project Logo](Lib/ostewla1.png)
 
 Automate the process of analyzing web server logs with the Python Web Log Analyzer. This powerful tool is designed to enhance security by identifying and detecting various types of cyber attacks within your server logs. Stay ahead of potential threats with features that include:
 
