@@ -20,8 +20,8 @@ def start():
 #        print(f"IP: {ip_address}, Timestamp: {timestamp},Method: {request_method},URL: {requested_uri},Status: {status_code}, User Agent: {user_agent}")
     
     
-    for user in users.keys():
-       print(len(users[user]))
+#    for user in users.keys():
+#       print(len(users[user]))
 
 def group_dates_by_ratio(date_list, ratio_seconds=10, threshold_count=20):
   #  print(date_list[0][0])
@@ -47,26 +47,51 @@ def group_dates_by_ratio(date_list, ratio_seconds=10, threshold_count=20):
             date_groups.append(current_group)
 
     return date_groups
-
-
+def check_tools(data):
+    file_path = 'Lib/Listoftools'
+    name_list = []
+    alert = {}
+    with open(file_path, 'r') as file:
+        for line in file:
+            name = line.strip().lower()
+            name_list.append(name)
+    for sampl in data:
+        for tool in name_list:
+            if tool.lower() in sampl[4].lower():                
+                if tool in alert.keys():
+                   alert[tool][0]+=1
+                   alert[tool][1].append(sampl)
+                else:
+                    alert[tool]= [1,[sampl]]
+    return alert
 def scan():
     global users,alerts
     for user in users.keys():
         
+        #Checking For indication of automated tool By sending multiple request in small time rate (more than 20 in 10 sec):
         result_groups=group_dates_by_ratio(users[user])
         if len(result_groups)>0 :
             if user in alerts:
                 alerts[user][0]+=len(result_groups)
                 for group in result_groups:
-                    alerts[user][1].append(["Multiple Requests in small time rate(10s) (number of req)",len(group)])
+                    alerts[user][1].append([f"Multiple Requests in small time rate(10s) (number of req:{len(group)})",len(group)])
             else:
                 alerts[user]=[len(result_groups),[] ]            
                 for group in result_groups:
-                    alerts[user][1].append(["Multiple Requests in small time rate(10s) (number of req)",len(group)])
-                
-#        for i, group in enumerate(result_groups):
- #           print(f"Group {i + 1}: {group}")
-
+                    alerts[user][1].append([f"Multiple Requests in small time rate(10s) (number of req:{len(group)})",len(group)])
+        #checking for indication of the use of automated tools
+        result_tools=check_tools(users[user])
+#        print(result_tools)
+        if len(result_tools.keys()) >0:
+            for tool in result_tools:
+#                print(tool)
+                if user in alerts:
+                    alerts[user][0]+=result_tools[tool][0]
+                    alerts[user][1].append([f"Usage of automated scanning tool namely {tool}",len(result_tools[tool][1]),result_tools[tool][1]])                
+                else:
+                    alerts[user]=[result_tools[tool][0],[] ]            
+                    alerts[user][1].append([f"Usage of automated scanning tool namely {tool}",len(result_tools[tool][1]),result_tools[tool][1]])                
+        
 def get_ips():
     global users
     print(users.keys())
@@ -101,7 +126,11 @@ def main():
         if args.total:
             start()
             scan()
-            print(alerts)
+#            print(alerts)
+            for user in alerts:
+                for i in range(len(alerts[user][1])):
+                    print (alerts[user][1][i][0])
+
     else:
         print('No log provided.')
 
